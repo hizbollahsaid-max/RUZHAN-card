@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUZHAN - Premium Member Card Maker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --royal-blue: #002347; --gold: #D4AF37; --dark: #0a0a0a; }
+        body { font-family: 'Hind Siliguri', sans-serif; background: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        
+        .admin-panel { background: #222; padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid var(--gold); width: 100%; max-width: 500px; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+        
+        /* কার্ড ক্যাপচার এরিয়া */
+        #card-capture { 
+            padding: 0; 
+            background: transparent;
+            width: 450px; /* ফিক্সড উইডথ */
+            height: 650px;
+        }
+
+        .card {
+            width: 450px; height: 650px;
+            background: radial-gradient(circle at center, #003366 0%, #001122 100%);
+            border: 4px solid var(--gold);
+            border-radius: 25px;
+            position: relative;
+            text-align: center;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+
+        .logo-area { margin-top: 30px; height: 60px; }
+        .logo-area h1 { color: var(--gold); margin: 0; letter-spacing: 5px; font-size: 35px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+
+        /* ছবি ফিক্স করার জন্য নতুন পদ্ধতি */
+        .photo-frame {
+            width: 200px; 
+            height: 200px;
+            margin: 40px auto 20px;
+            border-radius: 50%;
+            border: 5px solid var(--gold);
+            background-color: #000;
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
+            overflow: hidden;
+            /* ছবি যাতে চ্যাপ্টা না হয় তাই ব্যাকগ্রাউন্ড হিসেবে ব্যবহার */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .congrats { color: var(--gold); font-size: 16px; text-transform: uppercase; letter-spacing: 2px; margin-top: 20px; }
+        .message { font-size: 14px; color: #ccc; margin: 5px 40px; line-height: 1.5; }
+
+        .member-name { font-size: 32px; font-weight: bold; margin: 15px 0; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .status-badge {
+            background: linear-gradient(45deg, var(--gold), #f9e29c);
+            color: #000;
+            padding: 8px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .footer { position: absolute; bottom: 30px; width: 100%; color: rgba(212, 175, 55, 0.6); font-size: 12px; letter-spacing: 2px; }
+
+        .btn { background: var(--gold); color: black; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 20px; }
+        .btn:hover { background: #b8962d; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-panel">
+        <h3>RUZHAN কার্ড এডিটর</h3>
+        <label>মেম্বারের নাম লিখুন:</label>
+        <input type="text" id="nameInput" placeholder="উদা: আরিয়ান আহমেদ" oninput="updateName()">
+        <br>
+        <label>মেম্বারের ছবি আপলোড করুন:</label>
+        <input type="file" accept="image/*" onchange="updatePhoto(event)">
+    </div>
+
+    <div id="card-capture">
+        <div class="card">
+            <div class="logo-area">
+                <h1>RUZHAN</h1>
+            </div>
+
+            <!-- ইমেজ ট্যাগের বদলে ডিভ ব্যবহার করা হয়েছে -->
+            <div class="photo-frame" id="memberPhoto" style="background-image: url('https://via.placeholder.com/200');">
+            </div>
+
+            <div class="congrats">অভিনন্দন!</div>
+            <div class="message">RUZHAN-এর পক্ষ থেকে আপনাকে জানাই আন্তরিক শুভেচ্ছা। আপনার অ্যাকাউন্টটি সফলভাবে সক্রিয় করা হয়েছে।</div>
+
+            <div class="member-name" id="displayName">আপনার নাম</div>
+            
+            <div class="status-badge">PREMIUM ACTIVE MEMBER</div>
+
+            <div class="footer">WWW.RUZHAN.COM</div>
+        </div>
+    </div>
+
+    <button class="btn" onclick="downloadCard()">কার্ডটি ডাউনলোড করুন</button>
+
+    <script>
+        function updateName() {
+            document.getElementById('displayName').innerText = document.getElementById('nameInput').value || "আপনার নাম";
+        }
+
+        function updatePhoto(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // ব্যাকগ্রাউন্ড ইমেজ হিসেবে সেট করা হচ্ছে
+                    document.getElementById('memberPhoto').style.backgroundImage = `url('${e.target.result}')`;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function downloadCard() {
+            const card = document.querySelector("#card-capture");
+            
+            // ডাউনলোড করার সময় ক্লারিটি বজায় রাখার জন্য scale বাড়ানো হয়েছে
+            html2canvas(card, { 
+                scale: 2, 
+                backgroundColor: null,
+                useCORS: true,
+                logging: false,
+                width: 450,
+                height: 650
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Ruzhan_Member_Card.png';
+                link.href = canvas.toDataURL("image/png", 1.0);
+                link.click();
+            });
+        }
+    </script>
+
+</body>
+</html>
